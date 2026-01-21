@@ -10,14 +10,19 @@ st.set_page_config(page_title="Password Generator", page_icon="🔐")
 
 st.title("🔐 Password Generator")
 
-# Password length (max 8)
-length = st.slider("Password Length", min_value=4, max_value=8, value=8)
+# Password length (max 100)
+length = st.slider(
+    "Password Length",
+    min_value=4,
+    max_value=100,
+    value=12
+)
 
 # Number of passwords
 count = st.number_input(
     "How many passwords do you want?",
     min_value=1,
-    max_value=20,
+    max_value=50,
     value=5
 )
 
@@ -40,10 +45,10 @@ if st.button("Generate Passwords"):
         characters += string.punctuation
 
     if not characters:
-        st.error("Please select at least one character type.")
+        st.error("❌ Please select at least one character type.")
     else:
-        st.success("Generated Passwords:")
+        st.success("✅ Generated Passwords:")
         for i in range(count):
-            pwd = generate_password(length, characters)
-            st.code(pwd)
+            password = generate_password(length, characters)
+            st.code(password)
             
