@@ -7,10 +7,13 @@ def generate_password(length, characters):
 
 
 st.set_page_config(page_title="Password Generator", page_icon="🔐")
-
 st.title("🔐 Password Generator")
 
-# Password length (max 100)
+# Initialize history
+if "history" not in st.session_state:
+    st.session_state.history = []
+
+# Password length
 length = st.slider(
     "Password Length",
     min_value=4,
@@ -48,7 +51,23 @@ if st.button("Generate Passwords"):
         st.error("❌ Please select at least one character type.")
     else:
         st.success("✅ Generated Passwords:")
-        for i in range(count):
+        for _ in range(count):
             password = generate_password(length, characters)
             st.code(password)
-            
+            st.session_state.history.append(password)
+
+# Show history
+st.divider()
+st.subheader("📜 Password History")
+
+if st.session_state.history:
+    for i, pwd in enumerate(st.session_state.history, start=1):
+        st.text(f"{i}. {pwd}")
+else:
+    st.info("No passwords generated yet.")
+
+# Clear history button
+if st.button("🗑️ Clear History"):
+    st.session_state.history.clear()
+    st.success("History cleared!")
+    
