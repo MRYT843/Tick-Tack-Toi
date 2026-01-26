@@ -124,14 +124,32 @@ if sound_path is None:
             sound_path = files[0]
             break
 
-# Check if files exist
+# If files not found, allow uploads
 if image_path is None:
-    st.error("❌ Image file not found! Please place an image file (bird.png, sparrow.png, etc.) in the same folder.")
-    st.stop()
+    st.warning("⚠️ Player image not found. Please upload an image file or place it in the repository.")
+    uploaded_image = st.file_uploader("Upload Player Image (bird/character)", type=['png', 'jpg', 'jpeg', 'gif', 'webp'], key="player_image")
+    if uploaded_image is not None:
+        # Save uploaded image temporarily
+        with open("temp_player_image.png", "wb") as f:
+            f.write(uploaded_image.getbuffer())
+        image_path = "temp_player_image.png"
+    else:
+        st.info("💡 For Streamlit Cloud: Add your image files (bird.png, sparrow.png, etc.) to your GitHub repository.")
+        st.stop()
 
 if sound_path is None:
-    st.error("❌ Sound file not found! Please place sparrow_s_ouch.mp3 in the same folder.")
-    st.stop()
+    st.warning("⚠️ Sound file not found. Please upload a sound file or place it in the repository.")
+    uploaded_sound = st.file_uploader("Upload Sound File", type=['mp3', 'wav', 'ogg'], key="sound_file")
+    if uploaded_sound is not None:
+        # Save uploaded sound temporarily
+        sound_ext = uploaded_sound.name.split('.')[-1].lower()
+        sound_filename = f"temp_sound.{sound_ext}"
+        with open(sound_filename, "wb") as f:
+            f.write(uploaded_sound.getbuffer())
+        sound_path = sound_filename
+    else:
+        st.info("💡 For Streamlit Cloud: Add your sound file (sparrow_s_ouch.mp3) to your GitHub repository.")
+        st.stop()
 
 # Encode image and sound to base64
 def encode_file(file_path):
@@ -145,7 +163,7 @@ def encode_file(file_path):
 image_base64 = encode_file(image_path)
 sound_base64 = encode_file(sound_path)
 
-# Encode background image if found
+# Handle background image (optional)
 background_base64 = None
 background_mime = 'image/jpeg'
 if background_path:
@@ -162,6 +180,26 @@ if background_path:
     except Exception as e:
         st.warning(f"Could not load background image: {e}")
         background_base64 = None
+else:
+    # Allow background image upload if not found
+    uploaded_bg = st.file_uploader("Upload Background Image (Optional)", type=['png', 'jpg', 'jpeg', 'gif', 'webp'], key="bg_image")
+    if uploaded_bg is not None:
+        bg_ext = uploaded_bg.name.split('.')[-1].lower()
+        bg_filename = f"temp_bg.{bg_ext}"
+        with open(bg_filename, "wb") as f:
+            f.write(uploaded_bg.getbuffer())
+        try:
+            background_base64 = encode_file(bg_filename)
+            background_mime = {
+                'png': 'image/png',
+                'jpg': 'image/jpeg',
+                'jpeg': 'image/jpeg',
+                'gif': 'image/gif',
+                'webp': 'image/webp'
+            }.get(bg_ext, 'image/jpeg')
+        except Exception as e:
+            st.warning(f"Could not load uploaded background image: {e}")
+            background_base64 = None
 
 # Get file extension for proper MIME type
 image_ext = os.path.splitext(image_path)[1].lower()
